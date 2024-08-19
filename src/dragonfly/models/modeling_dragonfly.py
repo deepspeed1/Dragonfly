@@ -149,13 +149,13 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
         config: DragonflyConfig
     """
 
-    def __init__(self, config: DragonflyConfig):
+    def __init__(self, config: DragonflyConfig, to_use_flash_atten_2 = False):
         super().__init__(config)
         self.padding_idx = config.pad_token_id
         self.vocab_size = config.vocab_size
         self.language_model = AutoModelForCausalLM.from_config(config.text_config)
         self.use_image_encoder = config.image_encoder is not None
-
+        self.to_use_flash_atten_2 = to_use_flash_atten_2
         if config.image_encoder is not None:
             print("Initialize Vision Encoder")
             self.image_encoder = CLIPVisionModel.from_pretrained(config.image_encoder)
@@ -182,7 +182,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
         if hasattr(self.config, "text_pretrained_model_name_or_path"):
             if self.config.text_pretrained_model_name_or_path is not None:
                 language_model_id = self.config.text_pretrained_model_name_or_path
-                self.language_model = AutoModelForCausalLM.from_pretrained(language_model_id, use_flash_attention_2=True)
+                self.language_model = AutoModelForCausalLM.from_pretrained(language_model_id, use_flash_attention_2=self.to_use_flash_atten_2)
 
         if hasattr(self.config, "image_encoder"):
             if self.config.image_encoder is not None:
